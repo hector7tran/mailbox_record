@@ -1,171 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SEHC ER System</title>
+    <title>SEHC ER Box Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .active-tab { border-bottom: 3px solid #1d4ed8; color: #1d4ed8; }
-        .mandatory { border: 2px solid #ef4444 !important; }
+        .btn-status { transition: all 0.2s; border: 2px solid #e2e8f0; }
+        .selected-good { border-color: #3b82f6; background-color: #eff6ff; color: #1d4ed8; }
+        .selected-repair { border-color: #ef4444; background-color: #fef2f2; color: #b91c1c; }
+        input, select, textarea { font-size: 16px !important; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans">
+<body class="bg-slate-50 text-slate-900">
 
-    <div id="authOverlay" class="fixed inset-0 bg-blue-900 z-50 flex flex-col items-center justify-center p-6 text-white">
-        <div class="w-full max-w-sm text-center">
-            <h1 class="text-2xl font-bold mb-6 italic">SEHC ER MAILBOX SYSTEM</h1>
-            <input type="password" id="passInput" placeholder="Mật khẩu" class="w-full p-4 rounded-xl text-black text-center mb-4 outline-none">
-            <button onclick="checkAuth()" class="w-full bg-blue-500 font-bold p-4 rounded-xl shadow-lg">XÁC NHẬN</button>
+    <div id="auth" class="fixed inset-0 bg-blue-900 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
+        <h1 class="text-3xl font-black mb-2">ER PORTAL</h1>
+        <p class="text-blue-300 text-sm mb-8 uppercase tracking-widest">Suggestion Box System</p>
+        <div class="w-full max-w-xs space-y-4">
+            <input type="password" id="pw" placeholder="Mật khẩu" class="w-full p-4 rounded-2xl text-black text-center outline-none ring-4 ring-blue-800 focus:ring-blue-500 transition-all">
+            <button onclick="login()" class="w-full bg-blue-500 hover:bg-blue-400 p-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all">TRUY CẬP</button>
         </div>
     </div>
 
-    <div id="app" class="hidden">
-        <header class="bg-white p-4 shadow-sm sticky top-0 z-30 flex justify-between items-center">
-            <span class="font-bold text-blue-700">SUGGESTION BOX</span>
-            <span id="syncStatus" class="text-[10px] bg-green-100 text-green-600 px-2 py-1 rounded-full font-bold uppercase">Online</span>
+    <div id="mainApp" class="hidden">
+        <header class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-40">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">ER</div>
+                <span class="font-black text-slate-700 tracking-tight">SEHC-ER v1.2</span>
+            </div>
+            <div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
         </header>
 
-        <nav class="bg-white border-b flex sticky top-[56px] z-30">
-            <button onclick="switchTab('record')" id="tabRecord" class="flex-1 py-3 font-bold text-sm active-tab">NHẬP LIỆU</button>
-            <button onclick="switchTab('dashboard')" id="tabDashboard" class="flex-1 py-3 font-bold text-sm text-slate-400">THỐNG KÊ</button>
+        <nav class="bg-white border-b flex sticky top-[64px] z-40">
+            <button onclick="tab('rec')" id="t-rec" class="flex-1 py-4 font-bold text-sm active-tab">NHẬP LIỆU</button>
+            <button onclick="tab('dash')" id="t-dash" class="flex-1 py-4 font-bold text-sm text-slate-400">THỐNG KÊ</button>
         </nav>
 
-        <main id="contentRecord" class="p-4 max-w-md mx-auto space-y-4">
-            <div class="bg-white p-5 rounded-2xl shadow-sm space-y-4 border border-slate-100">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Vị trí hộp thư</label>
-                    <select id="f_location" class="w-full p-3 bg-slate-50 border rounded-xl outline-none"></select>
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Nhân viên ER</label>
-                    <select id="f_staff" class="w-full p-3 bg-slate-50 border rounded-xl outline-none"></select>
-                </div>
-                
+        <div id="c-rec" class="p-4 max-w-md mx-auto pb-24">
+            <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 space-y-5 border border-slate-100">
+                <section>
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Vị trí hộp thư</label>
+                    <select id="box" class="w-full p-4 bg-slate-50 border-none rounded-2xl mt-1 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all"></select>
+                </section>
+
+                <section>
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Nhân viên PIC</label>
+                    <select id="pic" class="w-full p-4 bg-slate-50 border-none rounded-2xl mt-1 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all"></select>
+                </section>
+
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="selectStatus('Good')" id="statusGood" class="p-3 border-2 rounded-xl bg-blue-50 border-blue-500 text-blue-600 font-bold">Good</button>
-                    <button onclick="selectStatus('Cần sửa chữa')" id="statusRepair" class="p-3 border-2 rounded-xl border-slate-100 text-slate-400 font-bold">Repair</button>
+                    <button onclick="setStatus('Good')" id="b-good" class="btn-status p-4 rounded-2xl font-bold selected-good">
+                        <i class="fas fa-check-circle block mb-1"></i> GOOD
+                    </button>
+                    <button onclick="setStatus('Cần sửa chữa')" id="b-repair" class="btn-status p-4 rounded-2xl font-bold text-slate-400">
+                        <i class="fas fa-tools block mb-1"></i> REPAIR
+                    </button>
                 </div>
 
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Số lượng thư</label>
-                    <input type="number" id="f_count" value="0" min="0" class="w-full p-3 bg-slate-50 border rounded-xl outline-none font-bold text-blue-600 text-center">
+                <section>
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Số lượng thư</label>
+                    <input type="number" id="qty" value="0" min="0" oninput="toggleVoc()" class="w-full p-4 bg-slate-50 border-none rounded-2xl mt-1 text-center font-black text-2xl text-blue-600 outline-none">
+                </section>
+
+                <div id="area-voc" class="hidden space-y-4">
+                    <textarea id="voc" placeholder="Tóm tắt nội dung VOC..." class="w-full p-4 bg-blue-50 border-none rounded-2xl h-24 outline-none placeholder:text-blue-300"></textarea>
                 </div>
 
-                <div id="vocArea" class="hidden animate-pulse">
-                    <label class="text-[10px] font-bold text-red-500 uppercase">Tóm tắt nội dung VOC *</label>
-                    <textarea id="f_voc" class="w-full p-3 bg-red-50 border border-red-200 rounded-xl h-20 outline-none"></textarea>
+                <div id="area-repair" class="hidden">
+                    <textarea id="note" placeholder="Mô tả hư hỏng..." class="w-full p-4 bg-red-50 border-none rounded-2xl h-20 outline-none placeholder:text-red-300"></textarea>
                 </div>
 
-                <div id="imageArea" class="hidden">
-                    <label class="text-[10px] font-bold text-orange-500 uppercase">Hình ảnh minh chứng (Bắt buộc) *</label>
-                    <input type="file" id="f_image" accept="image/*" class="w-full text-sm mt-1">
+                <div id="area-img" class="hidden border-2 border-dashed border-slate-200 p-4 rounded-2xl text-center">
+                    <label class="block text-sm font-bold text-slate-500 mb-2">Chụp ảnh minh chứng *</label>
+                    <input type="file" id="img" accept="image/*" class="text-xs w-full">
                 </div>
 
-                <div id="noteArea" class="hidden">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Ghi chú sửa chữa</label>
-                    <textarea id="f_note" class="w-full p-3 bg-slate-50 border rounded-xl h-16 outline-none"></textarea>
-                </div>
-
-                <button onclick="submitData()" id="btnSubmit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-all">GỬI BÁO CÁO</button>
+                <button onclick="submit()" id="btn" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-all">GỬI DỮ LIỆU</button>
             </div>
-        </main>
+        </div>
 
-        <main id="contentDashboard" class="hidden p-4 space-y-4">
-            <div id="statsSummary" class="grid grid-cols-2 gap-3"></div>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <table class="w-full text-[11px] text-left">
-                    <thead class="bg-slate-50">
-                        <tr><th class="p-3">Hộp thư</th><th class="p-3">Thời gian</th><th class="p-3">Số lượng</th></tr>
+        <div id="c-dash" class="hidden p-4 pb-24">
+            <div id="stats" class="grid grid-cols-2 gap-3 mb-6"></div>
+            <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100">
+                <table class="w-full text-left text-[11px]">
+                    <thead class="bg-slate-50 text-slate-400 font-bold uppercase">
+                        <tr><th class="p-4">Hộp thư</th><th class="p-4">Ngày</th><th class="p-4 text-center">Status</th></tr>
                     </thead>
-                    <tbody id="historyBody"></tbody>
+                    <tbody id="hist" class="divide-y divide-slate-50"></tbody>
                 </table>
             </div>
-        </main>
+        </div>
     </div>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/80 text-white px-6 py-3 rounded-full text-sm font-bold opacity-0 transition-all pointer-events-none z-50"></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-sm shadow-2xl opacity-0 translate-y-10 transition-all duration-300 pointer-events-none z-50"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxvkWQw7Bw-826TWc1QbsE5IdZVqkujR1u5PVdICrBuVTM1BoSKKIbn0qNBkK7yk07k4Q/exec";
-        let masterData = { locations: [], erStaff: [], history: [] };
-        let selectedStatus = 'Good';
+        const URL = "https://script.google.com/macros/s/AKfycbxvkWQw7Bw-826TWc1QbsE5IdZVqkujR1u5PVdICrBuVTM1BoSKKIbn0qNBkK7yk07k4Q/exec";
+        let db = { locations: [], erStaff: [], history: [] };
+        let curStatus = 'Good';
 
-        function checkAuth() {
-            if (document.getElementById('passInput').value === 'sehc@2026') {
-                document.getElementById('authOverlay').remove();
-                document.getElementById('app').classList.remove('hidden');
-                init();
-            } else { alert('Sai mật khẩu!'); }
+        function login() {
+            if(document.getElementById('pw').value === '55555') {
+                document.getElementById('auth').remove();
+                document.getElementById('mainApp').classList.remove('hidden');
+                load();
+            } else { alert("Sai mật khẩu!"); }
         }
 
-        async function init() {
-            const res = await fetch(API_URL);
-            masterData = await res.json();
-            document.getElementById('f_location').innerHTML = masterData.locations.map(l => `<option value="${l}">${l}</option>`).join('');
-            document.getElementById('f_staff').innerHTML = masterData.erStaff.map(s => `<option value="${s}">${s}</option>`).join('');
-            renderDashboard();
+        async function load() {
+            const r = await fetch(URL);
+            db = await r.json();
+            document.getElementById('box').innerHTML = db.locations.map(l => `<option value="${l}">${l}</option>`).join('');
+            document.getElementById('pic').innerHTML = db.erStaff.map(s => `<option value="${s}">${s}</option>`).join('');
+            render();
         }
 
-        function selectStatus(s) {
-            selectedStatus = s;
-            document.getElementById('statusGood').className = s === 'Good' ? 'p-3 border-2 rounded-xl bg-blue-50 border-blue-500 text-blue-600 font-bold' : 'p-3 border-2 rounded-xl border-slate-100 text-slate-400 font-bold';
-            document.getElementById('statusRepair').className = s === 'Cần sửa chữa' ? 'p-3 border-2 rounded-xl bg-red-50 border-red-500 text-red-600 font-bold' : 'p-3 border-2 rounded-xl border-slate-100 text-slate-400 font-bold';
-            document.getElementById('noteArea').classList.toggle('hidden', s !== 'Cần sửa chữa');
-            toggleImageRequirement();
+        function setStatus(s) {
+            curStatus = s;
+            document.getElementById('b-good').className = `btn-status p-4 rounded-2xl font-bold ${s==='Good'?'selected-good':'text-slate-400'}`;
+            document.getElementById('b-repair').className = `btn-status p-4 rounded-2xl font-bold ${s==='Cần sửa chữa'?'selected-repair':'text-slate-400'}`;
+            document.getElementById('area-repair').classList.toggle('hidden', s !== 'Cần sửa chữa');
+            toggleVoc();
         }
 
-        document.getElementById('f_count').addEventListener('input', toggleImageRequirement);
-
-        function toggleImageRequirement() {
-            const count = parseInt(document.getElementById('f_count').value) || 0;
-            const needsImage = (selectedStatus === 'Cần sửa chữa' || count > 0);
-            document.getElementById('imageArea').classList.toggle('hidden', !needsImage);
-            document.getElementById('vocArea').classList.toggle('hidden', count === 0);
-        }
-
-        function switchTab(t) {
-            document.getElementById('contentRecord').classList.toggle('hidden', t !== 'record');
-            document.getElementById('contentDashboard').classList.toggle('hidden', t !== 'dashboard');
-            document.getElementById('tabRecord').className = t === 'record' ? 'flex-1 py-3 font-bold text-sm active-tab' : 'flex-1 py-3 font-bold text-sm text-slate-400';
-            document.getElementById('tabDashboard').className = t === 'dashboard' ? 'flex-1 py-3 font-bold text-sm active-tab' : 'flex-1 py-3 font-bold text-sm text-slate-400';
-            if(t==='dashboard') renderDashboard();
+        function toggleVoc() {
+            const q = parseInt(document.getElementById('qty').value) || 0;
+            document.getElementById('area-voc').classList.toggle('hidden', q === 0);
+            document.getElementById('area-img').classList.toggle('hidden', q === 0 && curStatus === 'Good');
         }
 
         function showToast(m) {
             const t = document.getElementById('toast');
-            t.innerText = m; t.classList.add('opacity-100');
-            setTimeout(() => t.classList.remove('opacity-100'), 3000);
+            t.innerText = m; t.classList.remove('opacity-0', 'translate-y-10');
+            setTimeout(() => t.classList.add('opacity-0', 'translate-y-10'), 3000);
         }
 
-        async function submitData() {
-            const count = parseInt(document.getElementById('f_count').value) || 0;
-            const imageFile = document.getElementById('f_image').files[0];
+        async function submit() {
+            const q = parseInt(document.getElementById('qty').value) || 0;
+            const f = document.getElementById('img').files[0];
+            if ((q > 0 || curStatus === 'Cần sửa chữa') && !f) return showToast("⚠️ Phải chụp ảnh minh chứng!");
+
+            const b = document.getElementById('btn');
+            b.disabled = true; b.innerText = "ĐANG LƯU...";
             
-            // Validation
-            if ((selectedStatus === 'Cần sửa chữa' || count > 0) && !imageFile) {
-                showToast("⚠️ Vui lòng chụp ảnh minh chứng!");
-                document.getElementById('f_image').classList.add('mandatory');
-                return;
-            }
-
-            const btn = document.getElementById('btnSubmit');
-            btn.disabled = true; btn.innerText = "ĐANG GỬI...";
-
             const payload = {
-                location: document.getElementById('f_location').value,
-                erName: document.getElementById('f_staff').value,
-                status: selectedStatus,
-                mailCount: count,
-                vocSummary: document.getElementById('f_voc').value,
-                note: document.getElementById('f_note').value,
+                location: document.getElementById('box').value,
+                erName: document.getElementById('pic').value,
+                status: curStatus,
+                mailCount: q,
+                vocSummary: document.getElementById('voc').value,
+                note: document.getElementById('note').value,
                 image: null
             };
 
-            if (imageFile) {
+            if (f) {
                 const reader = new FileReader();
-                reader.readAsDataURL(imageFile);
+                reader.readAsDataURL(f);
                 reader.onload = async () => {
                     payload.image = reader.result;
                     await send(payload);
@@ -175,33 +168,43 @@
 
         async function send(p) {
             try {
-                showToast("🚀 Đang đồng bộ dữ liệu...");
-                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-                showToast("✅ Đã lưu thành công!");
+                showToast("🚀 Đang đồng bộ...");
+                await fetch(URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
+                showToast("✅ Lưu thành công!");
                 setTimeout(() => location.reload(), 1500);
-            } catch (e) { showToast("❌ Lỗi mạng!"); }
+            } catch(e) { showToast("❌ Lỗi kết nối!"); document.getElementById('btn').disabled = false; }
         }
 
-        function renderDashboard() {
-            const history = masterData.history.slice(-10).reverse();
-            document.getElementById('historyBody').innerHTML = history.map(r => `
-                <tr class="border-b">
-                    <td class="p-3 font-bold">${r[1]}</td>
-                    <td class="p-3 text-slate-500">${new Date(r[0]).toLocaleDateString('vi')}</td>
-                    <td class="p-3 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">${r[5]}</span></td>
+        function tab(t) {
+            document.getElementById('c-rec').classList.toggle('hidden', t !== 'rec');
+            document.getElementById('c-dash').classList.toggle('hidden', t !== 'dash');
+            document.getElementById('t-rec').className = `flex-1 py-4 font-bold text-sm ${t==='rec'?'active-tab':'text-slate-400'}`;
+            document.getElementById('t-dash').className = `flex-1 py-4 font-bold text-sm ${t==='dash'?'active-tab':'text-slate-400'}`;
+        }
+
+        function render() {
+            const hist = [...db.history].reverse().slice(0, 15);
+            document.getElementById('hist').innerHTML = hist.map(r => `
+                <tr>
+                    <td class="p-4 font-bold text-slate-700">${r[1]}</td>
+                    <td class="p-4 text-slate-400">${new Date(r[0]).toLocaleDateString('vi')}</td>
+                    <td class="p-4 text-center">
+                        <span class="px-2 py-1 rounded-lg font-bold ${r[3]==='Good'?'bg-green-100 text-green-600':'bg-red-100 text-red-600'}">
+                            ${r[3]==='Good'?'OK':'FIX'}
+                        </span>
+                    </td>
                 </tr>
             `).join('');
             
-            document.getElementById('statsSummary').innerHTML = `
-                <div class="bg-blue-600 p-4 rounded-xl text-white">
-                    <div class="text-[10px] opacity-80">TUẦN NÀY</div>
-                    <div class="text-xl font-bold">${new Set(masterData.history.map(r => r[1])).size}/10 Hộp</div>
+            document.getElementById('stats').innerHTML = `
+                <div class="bg-blue-600 p-5 rounded-3xl text-white shadow-lg shadow-blue-200">
+                    <div class="text-[10px] font-black opacity-60 uppercase">Đã kiểm tra</div>
+                    <div class="text-2xl font-black">${new Set(db.history.filter(r => (new Date() - new Date(r[0])) < 7*24*60*60*1000).map(r => r[1])).size}/10</div>
                 </div>
-                <div class="bg-white p-4 rounded-xl border">
-                    <div class="text-[10px] text-slate-400">TỔNG VOC</div>
-                    <div class="text-xl font-bold text-slate-700">${masterData.history.reduce((a,b)=>a+parseInt(b[5]||0),0)} Thư</div>
-                </div>
-            `;
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                    <div class="text-[10px] font-black text-slate-400 uppercase">Tổng VOC tuần</div>
+                    <div class="text-2xl font-black text-slate-700">${db.history.filter(r => (new Date() - new Date(r[0])) < 7*24*60*60*1000).reduce((a,b) => a + (parseInt(b[4])||0), 0)}</div>
+                </div>`;
         }
     </script>
 </body>
