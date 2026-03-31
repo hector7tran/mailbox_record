@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SEHC ER Box Management</title>
+    <title>SEHC ER Box v1.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .active-tab { border-bottom: 3px solid #1d4ed8; color: #1d4ed8; }
@@ -13,166 +13,201 @@
         input, select, textarea { font-size: 16px !important; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-50 text-slate-900 pb-10">
 
-    <div id="auth" class="fixed inset-0 bg-blue-900 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
-        <h1 class="text-3xl font-black mb-2">ER PORTAL</h1>
-        <p class="text-blue-300 text-sm mb-8 uppercase tracking-widest">Suggestion Box System</p>
-        <div class="w-full max-w-xs space-y-4">
-            <input type="password" id="pw" placeholder="Mật khẩu" class="w-full p-4 rounded-2xl text-black text-center outline-none ring-4 ring-blue-800 focus:ring-blue-500 transition-all">
-            <button onclick="login()" class="w-full bg-blue-500 hover:bg-blue-400 p-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all">TRUY CẬP</button>
-        </div>
+    <div id="auth" class="fixed inset-0 bg-blue-900 z-50 flex flex-col items-center justify-center p-6 text-white">
+        <h1 class="text-3xl font-black mb-6">SEHC ER v1.3</h1>
+        <input type="password" id="pw" placeholder="Mật khẩu" class="w-full max-w-xs p-4 rounded-2xl text-black text-center outline-none mb-4">
+        <button onclick="login()" class="w-full max-w-xs bg-blue-500 p-4 rounded-2xl font-bold shadow-xl">TRUY CẬP</button>
     </div>
 
     <div id="mainApp" class="hidden">
-        <header class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-40">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">ER</div>
-                <span class="font-black text-slate-700 tracking-tight">SEHC-ER v1.2</span>
-            </div>
-            <div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-        </header>
-
-        <nav class="bg-white border-b flex sticky top-[64px] z-40">
-            <button onclick="tab('rec')" id="t-rec" class="flex-1 py-4 font-bold text-sm active-tab">NHẬP LIỆU</button>
-            <button onclick="tab('dash')" id="t-dash" class="flex-1 py-4 font-bold text-sm text-slate-400">THỐNG KÊ</button>
+        <nav class="bg-white border-b flex sticky top-0 z-40 shadow-sm">
+            <button onclick="tab('rec')" id="t-rec" class="flex-1 py-4 font-bold text-sm active-tab uppercase">Record</button>
+            <button onclick="tab('dash')" id="t-dash" class="flex-1 py-4 font-bold text-sm text-slate-400 uppercase">Dashboard</button>
         </nav>
 
-        <div id="c-rec" class="p-4 max-w-md mx-auto pb-24">
-            <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 space-y-5 border border-slate-100">
+        <div id="c-rec" class="p-4 max-w-md mx-auto space-y-4">
+            <div class="bg-white p-6 rounded-3xl shadow-xl space-y-4 border border-slate-100">
                 <section>
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Vị trí hộp thư</label>
-                    <select id="box" class="w-full p-4 bg-slate-50 border-none rounded-2xl mt-1 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all"></select>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Vị trí hộp thư</label>
+                    <select id="box" class="w-full p-4 bg-slate-50 rounded-2xl mt-1 outline-none ring-2 ring-transparent focus:ring-blue-600 transition-all"></select>
                 </section>
 
                 <section>
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Nhân viên PIC</label>
-                    <select id="pic" class="w-full p-4 bg-slate-50 border-none rounded-2xl mt-1 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all"></select>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nhân viên ER</label>
+                    <select id="pic" class="w-full p-4 bg-slate-50 rounded-2xl mt-1 outline-none ring-2 ring-transparent focus:ring-blue-600 transition-all"></select>
                 </section>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="setStatus('Good')" id="b-good" class="btn-status p-4 rounded-2xl font-bold selected-good">
-                        <i class="fas fa-check-circle block mb-1"></i> GOOD
-                    </button>
-                    <button onclick="setStatus('Cần sửa chữa')" id="b-repair" class="btn-status p-4 rounded-2xl font-bold text-slate-400">
-                        <i class="fas fa-tools block mb-1"></i> REPAIR
-                    </button>
+                    <button onclick="setStatus('Good')" id="b-good" class="btn-status p-4 rounded-2xl font-bold selected-good">GOOD</button>
+                    <button onclick="setStatus('Repair')" id="b-repair" class="btn-status p-4 rounded-2xl font-bold text-slate-400">REPAIR</button>
                 </div>
 
                 <section>
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Số lượng thư</label>
-                    <input type="number" id="qty" value="0" min="0" oninput="toggleVoc()" class="w-full p-4 bg-slate-50 border-none rounded-2xl mt-1 text-center font-black text-2xl text-blue-600 outline-none">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Số lượng thư</label>
+                    <input type="number" id="qty" value="0" min="0" oninput="toggleLogic()" class="w-full p-4 bg-slate-50 rounded-2xl mt-1 text-center font-black text-3xl text-blue-600 outline-none">
                 </section>
 
-                <div id="area-voc" class="hidden space-y-4">
-                    <textarea id="voc" placeholder="Tóm tắt nội dung VOC..." class="w-full p-4 bg-blue-50 border-none rounded-2xl h-24 outline-none placeholder:text-blue-300"></textarea>
+                <div id="area-voc" class="hidden space-y-1">
+                    <label class="text-[10px] font-bold text-blue-500 uppercase ml-1">Tóm tắt nội dung VOC</label>
+                    <textarea id="voc" placeholder="Nhập tóm tắt..." class="w-full p-4 bg-blue-50 rounded-2xl h-24 outline-none"></textarea>
                 </div>
 
-                <div id="area-repair" class="hidden">
-                    <textarea id="note" placeholder="Mô tả hư hỏng..." class="w-full p-4 bg-red-50 border-none rounded-2xl h-20 outline-none placeholder:text-red-300"></textarea>
+                <div id="area-note" class="hidden space-y-1">
+                    <label class="text-[10px] font-bold text-red-500 uppercase ml-1">Ghi chú hư hỏng</label>
+                    <textarea id="note" placeholder="Mô tả hư hỏng..." class="w-full p-4 bg-red-50 rounded-2xl h-20 outline-none"></textarea>
                 </div>
 
-                <div id="area-img" class="hidden border-2 border-dashed border-slate-200 p-4 rounded-2xl text-center">
-                    <label class="block text-sm font-bold text-slate-500 mb-2">Chụp ảnh minh chứng *</label>
+                <div id="area-img" class="hidden bg-slate-50 p-4 rounded-2xl border-2 border-dashed border-slate-200">
+                    <label class="block text-xs font-bold text-slate-500 mb-2 text-center uppercase">Chụp ảnh minh chứng *</label>
                     <input type="file" id="img" accept="image/*" class="text-xs w-full">
                 </div>
 
-                <button onclick="submit()" id="btn" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-all">GỬI DỮ LIỆU</button>
+                <button onclick="submit()" id="btn" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg active:scale-95 transition-all">GỬI DỮ LIỆU</button>
             </div>
         </div>
 
-        <div id="c-dash" class="hidden p-4 pb-24">
-            <div id="stats" class="grid grid-cols-2 gap-3 mb-6"></div>
-            <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100">
-                <table class="w-full text-left text-[11px]">
-                    <thead class="bg-slate-50 text-slate-400 font-bold uppercase">
-                        <tr><th class="p-4">Hộp thư</th><th class="p-4">Ngày</th><th class="p-4 text-center">Status</th></tr>
-                    </thead>
-                    <tbody id="hist" class="divide-y divide-slate-50"></tbody>
-                </table>
+        <div id="c-dash" class="hidden p-4 space-y-4 max-w-md mx-auto">
+            <div id="weeklyProgress" class="bg-blue-600 p-6 rounded-3xl text-white shadow-lg">
+                <div class="text-xs font-bold opacity-70 uppercase mb-1">Tiến độ kiểm tra tuần này (Mon-Fri)</div>
+                <div class="text-3xl font-black"><span id="checkCount">0</span> / 10</div>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Tra cứu lịch sử Mailbox</label>
+                <select id="filterBox" onchange="renderHistory()" class="w-full p-4 bg-slate-50 rounded-2xl outline-none font-bold text-blue-600"></select>
+                
+                <div class="mt-6 overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b">
+                            <tr><th class="pb-2">Thời gian</th><th class="pb-2 text-center">Qty</th><th class="pb-2">PIC</th></tr>
+                        </thead>
+                        <tbody id="historyBody" class="divide-y divide-slate-50"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-sm shadow-2xl opacity-0 translate-y-10 transition-all duration-300 pointer-events-none z-50"></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-8 py-4 rounded-2xl font-bold text-sm opacity-0 transition-all duration-300 pointer-events-none z-50 text-center"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
-        const URL = "https://script.google.com/macros/s/AKfycbxvkWQw7Bw-826TWc1QbsE5IdZVqkujR1u5PVdICrBuVTM1BoSKKIbn0qNBkK7yk07k4Q/exec";
-        let db = { locations: [], erStaff: [], history: [] };
-        let curStatus = 'Good';
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxvkWQw7Bw-826TWc1QbsE5IdZVqkujR1u5PVdICrBuVTM1BoSKKIbn0qNBkK7yk07k4Q/exec";
+        let masterData = { locations: [], erStaff: [], vocHistory: [], statusHistory: [] };
+        let currentStatus = 'Good';
 
         function login() {
             if(document.getElementById('pw').value === '55555') {
                 document.getElementById('auth').remove();
                 document.getElementById('mainApp').classList.remove('hidden');
-                load();
+                loadData();
             } else { alert("Sai mật khẩu!"); }
         }
 
-        async function load() {
-            const r = await fetch(URL);
-            db = await r.json();
-            document.getElementById('box').innerHTML = db.locations.map(l => `<option value="${l}">${l}</option>`).join('');
-            document.getElementById('pic').innerHTML = db.erStaff.map(s => `<option value="${s}">${s}</option>`).join('');
-            render();
+        async function loadData() {
+            const r = await fetch(GAS_URL);
+            masterData = await r.json();
+            document.getElementById('box').innerHTML = masterData.locations.map(l => `<option value="${l}">${l}</option>`).join('');
+            document.getElementById('filterBox').innerHTML = `<option value="">-- Chọn hộp thư --</option>` + masterData.locations.map(l => `<option value="${l}">${l}</option>`).join('');
+            document.getElementById('pic').innerHTML = masterData.erStaff.map(s => `<option value="${s}">${s}</option>`).join('');
+            calculateWeekly();
         }
 
         function setStatus(s) {
-            curStatus = s;
+            currentStatus = s;
             document.getElementById('b-good').className = `btn-status p-4 rounded-2xl font-bold ${s==='Good'?'selected-good':'text-slate-400'}`;
-            document.getElementById('b-repair').className = `btn-status p-4 rounded-2xl font-bold ${s==='Cần sửa chữa'?'selected-repair':'text-slate-400'}`;
-            document.getElementById('area-repair').classList.toggle('hidden', s !== 'Cần sửa chữa');
-            toggleVoc();
+            document.getElementById('b-repair').className = `btn-status p-4 rounded-2xl font-bold ${s==='Repair'?'selected-repair':'text-slate-400'}`;
+            document.getElementById('area-note').classList.toggle('hidden', s !== 'Repair');
+            toggleLogic();
         }
 
-        function toggleVoc() {
+        function toggleLogic() {
             const q = parseInt(document.getElementById('qty').value) || 0;
+            const needsImage = (q > 0 || currentStatus === 'Repair');
             document.getElementById('area-voc').classList.toggle('hidden', q === 0);
-            document.getElementById('area-img').classList.toggle('hidden', q === 0 && curStatus === 'Good');
+            document.getElementById('area-img').classList.toggle('hidden', !needsImage);
         }
 
         function showToast(m) {
             const t = document.getElementById('toast');
-            t.innerText = m; t.classList.remove('opacity-0', 'translate-y-10');
-            setTimeout(() => t.classList.add('opacity-0', 'translate-y-10'), 3000);
+            t.innerText = m; t.classList.remove('opacity-0');
+            setTimeout(() => t.classList.add('opacity-0'), 3000);
         }
 
         async function submit() {
             const q = parseInt(document.getElementById('qty').value) || 0;
-            const f = document.getElementById('img').files[0];
-            if ((q > 0 || curStatus === 'Cần sửa chữa') && !f) return showToast("⚠️ Phải chụp ảnh minh chứng!");
+            const file = document.getElementById('img').files[0];
+            if ((q > 0 || currentStatus === 'Repair') && !file) return showToast("⚠️ TRƯỜNG HỢP NÀY BẮT BUỘC PHẢI CÓ ẢNH!");
 
-            const b = document.getElementById('btn');
-            b.disabled = true; b.innerText = "ĐANG LƯU...";
-            
+            const btn = document.getElementById('btn');
+            btn.disabled = true; btn.innerText = "ĐANG ĐỒNG BỘ...";
+
             const payload = {
                 location: document.getElementById('box').value,
                 erName: document.getElementById('pic').value,
-                status: curStatus,
+                status: currentStatus,
                 mailCount: q,
                 vocSummary: document.getElementById('voc').value,
                 note: document.getElementById('note').value,
                 image: null
             };
 
-            if (f) {
+            if (file) {
                 const reader = new FileReader();
-                reader.readAsDataURL(f);
+                reader.readAsDataURL(file);
                 reader.onload = async () => {
                     payload.image = reader.result;
-                    await send(payload);
+                    await sendRequest(payload);
                 };
-            } else { await send(payload); }
+            } else { await sendRequest(payload); }
         }
 
-        async function send(p) {
+        async function sendRequest(p) {
             try {
-                showToast("🚀 Đang đồng bộ...");
-                await fetch(URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-                showToast("✅ Lưu thành công!");
+                showToast("🚀 Đang gửi dữ liệu...");
+                await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
+                showToast("✅ HOÀN TẤT!");
                 setTimeout(() => location.reload(), 1500);
-            } catch(e) { showToast("❌ Lỗi kết nối!"); document.getElementById('btn').disabled = false; }
+            } catch(e) { 
+                showToast("❌ LỖI KẾT NỐI!"); 
+                document.getElementById('btn').disabled = false;
+            }
+        }
+
+        function calculateWeekly() {
+            const now = new Date();
+            const start = new Date(now.setDate(now.getDate() - now.getDay() + 1)); // Thứ 2
+            start.setHours(0,0,0,0);
+            const end = new Date(now.setDate(now.getDate() - now.getDay() + 5)); // Thứ 6
+            end.setHours(23,59,59,999);
+
+            const checkedBoxes = new Set(masterData.statusHistory
+                .filter(r => {
+                    const d = new Date(r[0]);
+                    return d >= start && d <= end;
+                })
+                .map(r => r[1])
+            );
+            document.getElementById('checkCount').innerText = checkedBoxes.size;
+        }
+
+        function renderHistory() {
+            const target = document.getElementById('filterBox').value;
+            if(!target) return;
+            // Lấy data từ vocHistory để hiện Qty
+            const filtered = masterData.vocHistory
+                .filter(r => r[1] === target)
+                .reverse()
+                .slice(0, 10);
+
+            document.getElementById('historyBody').innerHTML = filtered.map(r => `
+                <tr class="border-b last:border-0">
+                    <td class="py-3">${new Date(r[0]).toLocaleDateString('vi')}</td>
+                    <td class="py-3 text-center font-bold text-blue-600">${r[3]}</td>
+                    <td class="py-3 text-slate-500">${r[2]}</td>
+                </tr>
+            `).join('');
         }
 
         function tab(t) {
@@ -180,31 +215,6 @@
             document.getElementById('c-dash').classList.toggle('hidden', t !== 'dash');
             document.getElementById('t-rec').className = `flex-1 py-4 font-bold text-sm ${t==='rec'?'active-tab':'text-slate-400'}`;
             document.getElementById('t-dash').className = `flex-1 py-4 font-bold text-sm ${t==='dash'?'active-tab':'text-slate-400'}`;
-        }
-
-        function render() {
-            const hist = [...db.history].reverse().slice(0, 15);
-            document.getElementById('hist').innerHTML = hist.map(r => `
-                <tr>
-                    <td class="p-4 font-bold text-slate-700">${r[1]}</td>
-                    <td class="p-4 text-slate-400">${new Date(r[0]).toLocaleDateString('vi')}</td>
-                    <td class="p-4 text-center">
-                        <span class="px-2 py-1 rounded-lg font-bold ${r[3]==='Good'?'bg-green-100 text-green-600':'bg-red-100 text-red-600'}">
-                            ${r[3]==='Good'?'OK':'FIX'}
-                        </span>
-                    </td>
-                </tr>
-            `).join('');
-            
-            document.getElementById('stats').innerHTML = `
-                <div class="bg-blue-600 p-5 rounded-3xl text-white shadow-lg shadow-blue-200">
-                    <div class="text-[10px] font-black opacity-60 uppercase">Đã kiểm tra</div>
-                    <div class="text-2xl font-black">${new Set(db.history.filter(r => (new Date() - new Date(r[0])) < 7*24*60*60*1000).map(r => r[1])).size}/10</div>
-                </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-                    <div class="text-[10px] font-black text-slate-400 uppercase">Tổng VOC tuần</div>
-                    <div class="text-2xl font-black text-slate-700">${db.history.filter(r => (new Date() - new Date(r[0])) < 7*24*60*60*1000).reduce((a,b) => a + (parseInt(b[4])||0), 0)}</div>
-                </div>`;
         }
     </script>
 </body>
