@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SEHC ER - Suggestion Box Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .active-tab { border-bottom: 3px solid #1d4ed8; color: #1d4ed8; }
+        .loading-shimmer { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        input, select, textarea { font-size: 16px !important; } /* Tránh zoom trên iOS */
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <div id="authOverlay" class="fixed inset-0 bg-blue-900 z-50 flex flex-col items-center justify-center p-6 text-white">
+        <div class="w-full max-w-sm text-center">
+            <i class="fas fa-shield-halved text-5xl mb-4"></i>
+            <h1 class="text-2xl font-bold mb-6">ER Access Required</h1>
+            <input type="password" id="passInput" placeholder="Enter Password" class="w-full p-4 rounded-xl text-black text-center mb-4 outline-none">
+            <button onclick="checkAuth()" class="w-full bg-blue-500 hover:bg-blue-600 font-bold p-4 rounded-xl transition-all">UNLOCKED</button>
+        </div>
+    </div>
+
+    <div id="app" class="hidden pb-20">
+        <header class="bg-white shadow-sm sticky top-0 z-30 px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                    <i class="fas fa-inbox text-sm"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">ER Suggestion Box</span>
+            </div>
+            <span id="syncStatus" class="text-xs text-green-500 font-medium">● Online</span>
+        </header>
+
+        <nav class="bg-white border-b sticky top-[52px] z-30 flex">
+            <button onclick="switchTab('record')" id="tabRecord" class="flex-1 py-3 font-semibold text-sm active-tab">RECORD</button>
+            <button onclick="switchTab('dashboard')" id="tabDashboard" class="flex-1 py-3 font-semibold text-sm text-slate-400">DASHBOARD</button>
+        </nav>
+
+        <main id="contentRecord" class="p-4 max-w-md mx-auto space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm space-y-4 border border-slate-100">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Mailbox Location</label>
+                    <select id="f_location" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 ring-blue-500"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">ER Staff Name</label>
+                    <select id="f_staff" class="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 ring-blue-500"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div onclick="selectStatus('Good')" id="statusGood" class="p-4 border-2 rounded-xl text-center cursor-pointer transition-all border-blue-500 bg-blue-50 text-blue-600">
+                        <i class="fas fa-check-circle mb-1 text-xl"></i><br><span class="text-sm font-bold">Good</span>
+                    </div>
+                    <div onclick="selectStatus('Repair')" id="statusRepair" class="p-4 border-2 rounded-xl text-center cursor-pointer transition-all border-slate-100 text-slate-400">
+                        <i class="fas fa-tools mb-1 text-xl"></i><br><span class="text-sm font-bold">Repair</span>
+                    </div>
+                </div>
+                <div id="repairNoteSection" class="hidden">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Repair Note & Photo</label>
+                    <textarea id="f_note" placeholder="What needs to be fixed?" class="w-full p-3 bg-slate-50 border rounded-xl h-20 outline-none"></textarea>
+                    <input type="file" id="f_image" accept="image/*" class="mt-2 text-sm">
+                </div>
+                <hr>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Letter Count</label>
+                    <div class="flex gap-2">
+                        <button onclick="setMailCount(0)" id="mNone" class="flex-1 py-2 rounded-lg bg-slate-100 font-bold text-sm">None</button>
+                        <input type="number" id="f_count" placeholder="Qty" class="w-24 p-2 border rounded-lg text-center font-bold">
+                    </div>
+                </div>
+                <div id="vocSection" class="hidden">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">VOC Summary (Text only)</label>
+                    <textarea id="f_voc" class="w-full p-3 bg-slate-50 border rounded-xl h-24 outline-none"></textarea>
+                </div>
+                <button onclick="submitData()" id="btnSubmit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 active:scale-95 transition-all">SUBMIT DATA</button>
+            </div>
+        </main>
+
+        <main id="contentDashboard" class="hidden p-4 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <span class="text-xs text-slate-400 font-bold uppercase">Weekly Progress</span>
+                    <div class="text-2xl font-black text-blue-600 mt-1"><span id="checkCount">0</span>/10</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <span class="text-xs text-slate-400 font-bold uppercase">Total Letters</span>
+                    <div id="totalLetters" class="text-2xl font-black text-slate-700 mt-1">0</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-4 border-b flex justify-between items-center">
+                    <h3 class="font-bold">Inventory Status</h3>
+                    <select id="h_filter" onchange="renderHistory()" class="text-sm bg-slate-100 p-1 rounded font-medium outline-none">
+                        <option value="">All Boxes</option>
+                    </select>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-400">
+                            <tr>
+                                <th class="p-4 font-bold uppercase text-[10px]">Location</th>
+                                <th class="p-4 font-bold uppercase text-[10px]">Time</th>
+                                <th class="p-4 font-bold uppercase text-[10px]">Staff</th>
+                                <th class="p-4 font-bold uppercase text-[10px]">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl transition-all opacity-0 translate-y-10 z-50"></div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvkWQw7Bw-826TWc1QbsE5IdZVqkujR1u5PVdICrBuVTM1BoSKKIbn0qNBkK7yk07k4Q/exec";
+        let masterData = { locations: [], erStaff: [], history: [], inventory: [] };
+        let selectedStatus = 'Good';
+
+        function checkAuth() {
+            if (document.getElementById('passInput').value === 'ER@2026') {
+                document.getElementById('authOverlay').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                fetchData();
+            } else {
+                showToast("❌ Wrong Password!");
+            }
+        }
+
+        async function fetchData() {
+            try {
+                const res = await fetch(API_URL);
+                masterData = await res.json();
+                populateDropdowns();
+                renderDashboard();
+            } catch (e) { console.error("Data load error", e); }
+        }
+
+        function populateDropdowns() {
+            const locS = document.getElementById('f_location');
+            const hFil = document.getElementById('h_filter');
+            locS.innerHTML = masterData.locations.map(l => `<option value="${l}">${l}</option>`).join('');
+            hFil.innerHTML = `<option value="">View History</option>` + masterData.locations.map(l => `<option value="${l}">${l}</option>`).join('');
+            document.getElementById('f_staff').innerHTML = masterData.erStaff.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
+        function selectStatus(s) {
+            selectedStatus = s;
+            document.getElementById('statusGood').className = s === 'Good' ? 'p-4 border-2 rounded-xl text-center cursor-pointer transition-all border-blue-500 bg-blue-50 text-blue-600' : 'p-4 border-2 rounded-xl text-center cursor-pointer transition-all border-slate-100 text-slate-400';
+            document.getElementById('statusRepair').className = s === 'Repair' ? 'p-4 border-2 rounded-xl text-center cursor-pointer transition-all border-red-500 bg-red-50 text-red-600' : 'p-4 border-2 rounded-xl text-center cursor-pointer transition-all border-slate-100 text-slate-400';
+            document.getElementById('repairNoteSection').classList.toggle('hidden', s !== 'Repair');
+        }
+
+        document.getElementById('f_count').addEventListener('input', (e) => {
+            const count = parseInt(e.target.value);
+            document.getElementById('vocSection').classList.toggle('hidden', isNaN(count) || count <= 0);
+        });
+
+        function setMailCount(n) {
+            document.getElementById('f_count').value = n;
+            document.getElementById('vocSection').classList.toggle('hidden', n === 0);
+        }
+
+        function switchTab(t) {
+            document.getElementById('contentRecord').classList.toggle('hidden', t !== 'record');
+            document.getElementById('contentDashboard').classList.toggle('hidden', t !== 'dashboard');
+            document.getElementById('tabRecord').className = t === 'record' ? 'flex-1 py-3 font-semibold text-sm active-tab' : 'flex-1 py-3 font-semibold text-sm text-slate-400';
+            document.getElementById('tabDashboard').className = t === 'dashboard' ? 'flex-1 py-3 font-semibold text-sm active-tab' : 'flex-1 py-3 font-semibold text-sm text-slate-400';
+            if(t === 'dashboard') renderDashboard();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-10');
+            setTimeout(() => t.classList.add('opacity-0', 'translate-y-10'), 3000);
+        }
+
+        // OPTIMISTIC UI LOGIC
+        async function submitData() {
+            const payload = {
+                location: document.getElementById('f_location').value,
+                erName: document.getElementById('f_staff').value,
+                status: selectedStatus,
+                note: document.getElementById('f_note').value,
+                mailCount: document.getElementById('f_count').value || 0,
+                vocSummary: document.getElementById('f_voc').value,
+                image: null
+            };
+
+            // 1. Instant Response (Optimistic)
+            showToast("🚀 Data sending...");
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.innerText = "SAVING...";
+
+            // Xử lý ảnh base64 nếu có
+            const file = document.getElementById('f_image').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    payload.image = reader.result;
+                    sendRequest(payload);
+                };
+            } else {
+                sendRequest(payload);
+            }
+        }
+
+        async function sendRequest(payload) {
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Apps script CORS workaround
+                    body: JSON.stringify(payload)
+                });
+                
+                showToast("✅ Recorded Successfully!");
+                setTimeout(() => location.reload(), 1500);
+            } catch (e) {
+                showToast("❌ Network Error");
+                document.getElementById('btnSubmit').disabled = false;
+            }
+        }
+
+        function renderDashboard() {
+            const tableBody = document.getElementById('historyTableBody');
+            const filter = document.getElementById('h_filter').value;
+            
+            // Lọc dữ liệu tuần hiện tại
+            const weekData = masterData.history.filter(row => {
+                const date = new Date(row[0]);
+                return (new Date() - date) / (1000 * 60 * 60 * 24) <= 7;
+            });
+
+            const checkedBoxes = new Set(weekData.map(r => r[1]));
+            document.getElementById('checkCount').innerText = checkedBoxes.size;
+            document.getElementById('totalLetters').innerText = weekData.reduce((s, r) => s + (parseInt(r[5]) || 0), 0);
+
+            const displayData = filter ? masterData.history.filter(r => r[1] === filter) : masterData.history.slice(-10);
+            
+            tableBody.innerHTML = displayData.reverse().map(row => `
+                <tr class="border-b last:border-0">
+                    <td class="p-4 font-medium">${row[1]}</td>
+                    <td class="p-4 text-xs text-slate-500">${new Date(row[0]).toLocaleDateString('vi-VN', {hour:'2-digit', minute:'2-digit'})}</td>
+                    <td class="p-4">${row[2]}</td>
+                    <td class="p-4"><span class="px-2 py-1 rounded bg-blue-100 text-blue-700 font-bold">${row[5]}</span></td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
